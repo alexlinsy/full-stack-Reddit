@@ -30,6 +30,7 @@ const dotenv = __importStar(require("dotenv"));
 const constants_1 = require("./constants");
 const Post_1 = require("./entities/Post");
 const path_1 = __importDefault(require("path"));
+const User_1 = require("./entities/User");
 dotenv.config();
 exports.default = {
     allowGlobalContext: true,
@@ -39,7 +40,7 @@ exports.default = {
     },
     user: process.env.USERNAME,
     password: process.env.PASSWORD,
-    entities: [Post_1.Post],
+    entities: [Post_1.Post, User_1.User],
     dbName: 'lireddit',
     type: 'postgresql',
     debug: !constants_1.__prod__,

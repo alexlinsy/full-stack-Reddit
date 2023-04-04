@@ -1,13 +1,13 @@
 import 'reflect-metadata';
 import * as dotenv from 'dotenv';
 import { MikroORM } from '@mikro-orm/core';
-// import { Post } from './entities/Post';
 import microConfig from './mikro-orm.config';
 import express from 'express';
 import { ApolloServer } from 'apollo-server-express';
 import { buildSchema } from 'type-graphql';
 import { HelloResolver } from './resolvers/hello';
 import { PostResolver } from './resolvers/post';
+import { UserResolver } from './resolvers/user';
 
 dotenv.config();
 
@@ -18,7 +18,7 @@ const main = async () => {
     const app = express();
     const apolloServer = new ApolloServer({
         schema: await buildSchema({
-            resolvers: [HelloResolver, PostResolver],
+            resolvers: [HelloResolver, PostResolver, UserResolver],
             validate: false,
         }),
         persistedQueries: false,

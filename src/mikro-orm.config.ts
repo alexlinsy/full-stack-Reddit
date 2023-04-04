@@ -3,6 +3,7 @@ import { __prod__ } from "./constants";
 import { Post } from "./entities/Post";
 import { MikroORM } from '@mikro-orm/core';
 import path from 'path';
+import { User } from './entities/User';
 
 dotenv.config()
 
@@ -14,7 +15,7 @@ export default {
     },
     user: process.env.USERNAME,
     password: process.env.PASSWORD,
-    entities: [Post],
+    entities: [Post, User],
     dbName: 'lireddit',
     type: 'postgresql',
     debug: !__prod__,
