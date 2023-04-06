@@ -78,10 +78,23 @@ let UserResolver = class UserResolver {
         }
         const hashedPassword = await argon2_1.default.hash(options.password);
         const user = new User_1.User(options.username, hashedPassword);
-        await em.persistAndFlush(user);
+        try {
+            await em.persistAndFlush(user);
+        }
+        catch (error) {
+            if (error.code === '23505' || error.detail.include('already exist')) {
+                return {
+                    errors: [{
+                            field: 'username',
+                            message: 'username already taken'
+                        }],
+                };
+            }
+            console.log('message: ', error.message);
+        }
         return { user, };
     }
-    async login(options, { em }) {
+    async login(options, { em, req }) {
         const user = await em.findOne(User_1.User, { username: options.username });
         if (!user) {
             return {
@@ -104,6 +117,7 @@ let UserResolver = class UserResolver {
                 ]
             };
         }
+        req.session.userId = user.id;
         return { user, };
     }
 };
