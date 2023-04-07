@@ -30,7 +30,7 @@ const main = async () => {
 
     app.set("trust proxy", true);
 
-    const cors = { credentials: true, origin: 'https://studio.apollographql.com' }
+    const cors = { credentials: true, origin: 'http://localhost:3000', allowedHeaders:'Content-Type,Authorization' }
 
     const redisClient = createClient();
     redisClient.connect().catch(console.error);
@@ -51,8 +51,8 @@ const main = async () => {
             cookie: {
                 maxAge: 1000 * 60 * 60 * 24 * 365 * 10, // 10 years
                 httpOnly: true,
-                sameSite: 'none',
-                secure: true, // cookie only works in https
+                sameSite: 'lax',
+                secure: false, // cookie only works in https
             },
         })
     );

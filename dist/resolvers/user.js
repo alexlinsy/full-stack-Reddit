@@ -59,7 +59,14 @@ UserResponse = __decorate([
     (0, type_graphql_1.ObjectType)()
 ], UserResponse);
 let UserResolver = class UserResolver {
-    async register(options, { em }) {
+    async me({ em, req }) {
+        if (!req.session.userId) {
+            return null;
+        }
+        const user = await em.findOne(User_1.User, req.session.userId);
+        return user;
+    }
+    async register(options, { em, req }) {
         if (options.username.length <= 2) {
             return {
                 errors: [{
@@ -77,9 +84,15 @@ let UserResolver = class UserResolver {
             };
         }
         const hashedPassword = await argon2_1.default.hash(options.password);
-        const user = new User_1.User(options.username, hashedPassword);
+        let user;
         try {
-            await em.persistAndFlush(user);
+            const result = await em.createQueryBuilder(User_1.User).getKnexQuery().insert({
+                username: options.username,
+                password: hashedPassword,
+                created_at: new Date(),
+                update_at: new Date()
+            }).returning("*");
+            user = result[0];
         }
         catch (error) {
             if (error.code === '23505' || error.detail.include('already exist')) {
@@ -92,6 +105,7 @@ let UserResolver = class UserResolver {
             }
             console.log('message: ', error.message);
         }
+        req.session.userId = user.id;
         return { user, };
     }
     async login(options, { em, req }) {
@@ -121,6 +135,13 @@ let UserResolver = class UserResolver {
         return { user, };
     }
 };
+__decorate([
+    (0, type_graphql_1.Query)(() => User_1.User, { nullable: true }),
+    __param(0, (0, type_graphql_1.Ctx)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Object]),
+    __metadata("design:returntype", Promise)
+], UserResolver.prototype, "me", null);
 __decorate([
     (0, type_graphql_1.Mutation)(() => UserResponse),
     __param(0, (0, type_graphql_1.Arg)('options', () => UsernamePasswordInput)),

@@ -1,7 +1,8 @@
 import { User } from '../entities/User';
 import { MyContext } from 'src/types';
-import { Resolver, Mutation, InputType, Field, Arg, Ctx, ObjectType } from 'type-graphql';
+import { Resolver, Mutation, InputType, Field, Arg, Ctx, ObjectType, Query } from 'type-graphql';
 import argon2 from 'argon2';
+import { EntityManager } from '@mikro-orm/postgresql'
 
 @InputType()
 class UsernamePasswordInput {
@@ -30,6 +31,18 @@ class UserResponse {
 
 @Resolver()
 export class UserResolver {
+    @Query(() => User, {nullable: true})
+    async me(
+        @Ctx() {em, req}: MyContext
+    ) {
+        if(!req.session.userId) {
+            return null;
+        }
+
+        const user = await em.findOne(User, req.session.userId);
+        return user;
+    }
+
     @Mutation(() => UserResponse)
     async register(
         @Arg('options', () => UsernamePasswordInput) options: UsernamePasswordInput,
@@ -52,9 +65,17 @@ export class UserResolver {
             }
         }
         const hashedPassword = await argon2.hash(options.password);
-        const user = new User(options.username, hashedPassword);
+        let user;
         try {
-            await em.persistAndFlush(user);
+            const result = await (em as EntityManager).createQueryBuilder(User).getKnexQuery().insert(
+                {
+                    username: options.username,
+                    password: hashedPassword,
+                    created_at: new Date(),
+                    update_at: new Date() 
+                }
+            ).returning("*");
+            user = result[0];
         } catch (error) {
             if (error.code === '23505' || error.detail.include('already exist')) {
                 //duplicate username error

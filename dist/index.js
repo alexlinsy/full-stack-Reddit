@@ -45,7 +45,7 @@ const main = async () => {
     await orm.getMigrator().up();
     const app = (0, express_1.default)();
     app.set("trust proxy", true);
-    const cors = { credentials: true, origin: 'https://studio.apollographql.com' };
+    const cors = { credentials: true, origin: 'http://localhost:3000', allowedHeaders: 'Content-Type,Authorization' };
     const redisClient = (0, redis_1.createClient)();
     redisClient.connect().catch(console.error);
     let redisStore = new connect_redis_1.default({
@@ -62,8 +62,8 @@ const main = async () => {
         cookie: {
             maxAge: 1000 * 60 * 60 * 24 * 365 * 10,
             httpOnly: true,
-            sameSite: 'none',
-            secure: true,
+            sameSite: 'lax',
+            secure: false,
         },
     }));
     const apolloServer = new apollo_server_express_1.ApolloServer({
